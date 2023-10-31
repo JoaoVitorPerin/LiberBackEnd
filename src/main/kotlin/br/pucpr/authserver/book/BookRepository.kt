@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository
 interface BookRepository : JpaRepository<Book, Long> {
     fun findByTitle(title: String): Book?
 
-    @Query("SELECT DISTINCT b FROM Book b WHERE b.title = :title")
+    @Query("select distinct b from Book b where LOWER(b.title) like LOWER(CONCAT('%', :title, '%'))")
     fun findBooksByTitle(@Param("title") title: String): List<Book>
 
     @Query("select distinct b from Book b" +
