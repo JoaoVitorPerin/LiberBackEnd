@@ -3,16 +3,19 @@ package br.pucpr.authserver.category.controller
 import br.pucpr.authserver.category.CategoryService
 import br.pucpr.authserver.category.controller.requests.CreateCategoryRequest
 import br.pucpr.authserver.category.controller.responses.CategoryResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/categories")
 class CategoryController(private val service: CategoryService) {
-
+    @SecurityRequirement(name="AuthServer")
+    @PreAuthorize("permitAll()")
     @PostMapping
     fun create(@Valid @RequestBody request: CreateCategoryRequest): ResponseEntity<CategoryResponse> {
         val category = service.createCategory(request.toCategory())

@@ -31,6 +31,9 @@ class BookService(
     fun getAllBooks(): List<Book> =
         repository.findAll(Sort.by("title").ascending())
 
+    fun getBooksByTitle(title: String): List<Book> =
+            repository.findBooksByTitle(title)
+
     fun getBooksByCategory(category: String): List<Book> =
             repository.findByCategory(category)
 

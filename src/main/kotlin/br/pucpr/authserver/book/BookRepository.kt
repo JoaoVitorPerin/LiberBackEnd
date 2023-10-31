@@ -2,11 +2,15 @@ package br.pucpr.authserver.book
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
 interface BookRepository : JpaRepository<Book, Long> {
     fun findByTitle(title: String): Book?
+
+    @Query("SELECT DISTINCT b FROM Book b WHERE b.title = :title")
+    fun findBooksByTitle(@Param("title") title: String): List<Book>
 
     @Query("select distinct b from Book b" +
             " join b.categories c" +
