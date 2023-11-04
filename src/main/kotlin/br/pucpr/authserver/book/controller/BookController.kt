@@ -14,12 +14,14 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/books")
-class BookController(private val service: BookService) {
+class BookController(
+        private val service: BookService
+    ) {
     @SecurityRequirement(name="AuthServer")
     @PreAuthorize("permitAll()")
     @PostMapping
     fun create(@Valid @RequestBody request: CreateBookRequest): ResponseEntity<BookResponse> {
-        val book = service.createBook(request.toBook())
+        val book = service.createBook(request)
         return ResponseEntity.status(HttpStatus.CREATED).body(BookResponse(book))
     }
 
