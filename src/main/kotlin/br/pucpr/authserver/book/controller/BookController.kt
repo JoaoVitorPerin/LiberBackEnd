@@ -1,9 +1,9 @@
 package br.pucpr.authserver.book.controller
 
+import BookResponse
 import br.pucpr.authserver.book.BookService
 import br.pucpr.authserver.book.controller.requests.CreateBookRequest
 import br.pucpr.authserver.book.controller.requests.PatchBookRequest
-import br.pucpr.authserver.book.controller.responses.BookResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.http.HttpStatus
 import jakarta.validation.Valid

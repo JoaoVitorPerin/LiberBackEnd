@@ -18,35 +18,23 @@ class BookService(
 ) {
 
     fun createBook(request: CreateBookRequest): Book {
-        val categories: MutableSet<Category> = request.categories
-                .map { Category(name = it.name) }
-                .toMutableSet()
+        val categories: MutableSet<Category> = mutableSetOf()
 
-        // Verifica se as categorias existem no banco de dados
-        categories.forEach { category ->
-            if (category.id != null) {
-                val existingCategory = categoryRepository.findById(category.id!!).orElse(null)
-                if (existingCategory != null) {
-                    categoryRepository.save(existingCategory)
-                } else {
-                    throw NotFoundException(category.id!!)
-                }
-            } else {
-                categoryRepository.save(category)
-            }
+        // Verifica se as categorias existem no banco de dados e as salva se necessário
+        request.categories.forEach { categoryRequest ->
+            val existingCategory = categoryRepository.findByName(categoryRequest.name)
+            val category = existingCategory ?: Category(name = categoryRequest.name)
+            categories.add(categoryRepository.save(category))
         }
 
-        // Salva o livro no banco de dados
-        if (repository.findByTitle(request.title) != null) {
-            throw BadRequestException("Book already exists")
-        }
-
+        // Cria o livro com as categorias já persistidas
         val book = Book(
                 title = request.title,
                 author = request.author,
                 categories = categories
         )
 
+        // Salva o livro no banco de dados
         return repository.save(book)
                 .also { savedBook -> log.info("Book inserted: {}", savedBook.id) }
     }
