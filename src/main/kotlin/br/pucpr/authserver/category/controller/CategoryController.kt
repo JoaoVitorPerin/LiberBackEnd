@@ -3,6 +3,7 @@ package br.pucpr.authserver.category.controller
 import br.pucpr.authserver.category.CategoryService
 import br.pucpr.authserver.category.controller.requests.CreateCategoryRequest
 import br.pucpr.authserver.category.controller.responses.CategoryResponse
+import br.pucpr.authserver.category.controller.responses.CategoryWithBooksResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -23,9 +24,11 @@ class CategoryController(private val service: CategoryService) {
     }
 
     @GetMapping
-    fun list() =
-            service.getAllCategories().map { CategoryResponse(it) }.let { ResponseEntity.ok(it) }
-
+    fun list(): ResponseEntity<List<CategoryWithBooksResponse>> {
+        val categoriesWithBooks = service.getAllCategories()
+        val categories = categoriesWithBooks.map { CategoryWithBooksResponse(it.id!!, it.name!!, it.books!!) } // Adaptar a lista para Category
+        return ResponseEntity.ok(categories)
+    }
     @GetMapping("/{id}")
     fun getById(@PathVariable id: Long) =
             service.findCategoryByIdOrNull(id)?.let { ResponseEntity.ok(CategoryResponse(it)) }

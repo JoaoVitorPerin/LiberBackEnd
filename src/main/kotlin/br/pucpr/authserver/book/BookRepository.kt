@@ -12,9 +12,6 @@ interface BookRepository : JpaRepository<Book, Long> {
     @Query("select distinct b from Book b where LOWER(b.title) like LOWER(CONCAT('%', :title, '%'))")
     fun findBooksByTitle(@Param("title") title: String): List<Book>
 
-    @Query("select distinct b from Book b" +
-            " join b.categories c" +
-            " where c.name = :category" +
-            " order by b.title")
-    fun findByCategory(category: String): List<Book>
+    @Query("select distinct b from Book b join b.categories c where c.name = :category")
+    fun findByCategory(@Param("category") category: String): MutableSet<Book>
 }

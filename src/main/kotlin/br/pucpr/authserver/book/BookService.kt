@@ -52,8 +52,11 @@ class BookService(
     fun getBooksByTitle(title: String): List<Book> =
             repository.findBooksByTitle(title)
 
-    fun getBooksByCategory(category: String): List<Book> =
-            repository.findByCategory(category)
+    fun getBooksByCategory(category: String): List<Book> {
+        val categoryEntity = categoryRepository.findByName(category) ?: throw NotFoundException("Category not found")
+        return categoryRepository.findBooksByCategoryName(categoryEntity.name)
+    }
+
 
     fun findBookByIdOrNull(id: Long): Book? =
             repository.findById(id).orElse(null)

@@ -24,7 +24,7 @@ class BookController(
         val book = service.createBook(request)
         return ResponseEntity.status(HttpStatus.CREATED).body(BookResponse(book))
     }
-
+    // TODO: implementar o update
     @PatchMapping("/{id}")
     fun update(
             @PathVariable id: Long,
@@ -36,20 +36,24 @@ class BookController(
     @GetMapping
     fun list() = service.getAllBooks().map { BookResponse(it) }.let { ResponseEntity.ok(it) }
 
-    // TODO: implementar get por title 
+    // TODO: implementar get por title do jeito que o vini pediu
     @GetMapping("/title/{title}")
     fun getByTitle(@PathVariable title: String? = null) =
             service.getBooksByTitle(title!!.uppercase()).map { BookResponse(it) }.let { ResponseEntity.ok(it) }
 
     @GetMapping("/category/{category}")
-    fun getByCategory(@PathVariable category: String? = null) =
-                service.getBooksByCategory(category!!.uppercase()).map { BookResponse(it) }.let { ResponseEntity.ok(it) }
+    fun getByCategory(@PathVariable category: String? = null): ResponseEntity<List<BookResponse>> {
+        val books = service.getBooksByCategory(category!!.lowercase())
+        val bookResponses = books.map { BookResponse(it) }
+        return ResponseEntity.ok(bookResponses)
+    }
 
     @GetMapping("/{id}")
     fun getById(@PathVariable id: Long) =
             service.findBookByIdOrNull(id)?.let { ResponseEntity.ok(BookResponse(it)) }
                     ?: ResponseEntity.notFound().build()
 
+    // TODO: implementar o delete
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: Long): ResponseEntity<Void> =
             if (service.deleteBook(id)) ResponseEntity.ok().build()
