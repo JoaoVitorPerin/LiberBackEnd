@@ -1,5 +1,6 @@
 package br.pucpr.authserver.category
 
+import BookResponse
 import br.pucpr.authserver.book.BookRepository
 import br.pucpr.authserver.category.controller.responses.CategoryWithBooksResponse
 import br.pucpr.authserver.exception.BadRequestException
@@ -25,10 +26,11 @@ class CategoryService(
     fun getAllCategories(): List<CategoryWithBooksResponse> {
         val categories = repository.findAll()
         return categories.map { category ->
-            val books = bookRepository.findByCategory(category.name)
+            val books = bookRepository.findByCategory(category.name).map { BookResponse(it) }.toMutableSet()
             CategoryWithBooksResponse(category.id!!, category.name, books)
         }
     }
+
 
     fun findCategoryByIdOrNull(id: Long): Category? =
             repository.findById(id).orElse(null)

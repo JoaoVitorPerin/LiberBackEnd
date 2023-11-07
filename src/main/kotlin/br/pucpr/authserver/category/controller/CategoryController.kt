@@ -1,5 +1,6 @@
 package br.pucpr.authserver.category.controller
 
+import BookResponse
 import br.pucpr.authserver.category.CategoryService
 import br.pucpr.authserver.category.controller.requests.CreateCategoryRequest
 import br.pucpr.authserver.category.controller.responses.CategoryResponse
@@ -15,8 +16,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/categories")
 class CategoryController(private val service: CategoryService) {
-    @SecurityRequirement(name="AuthServer")
-    @PreAuthorize("permitAll()")
+
     @PostMapping
     fun create(@Valid @RequestBody request: CreateCategoryRequest): ResponseEntity<CategoryResponse> {
         val category = service.createCategory(request.toCategory())
@@ -26,14 +26,28 @@ class CategoryController(private val service: CategoryService) {
     @GetMapping
     fun list(): ResponseEntity<List<CategoryWithBooksResponse>> {
         val categoriesWithBooks = service.getAllCategories()
-        val categories = categoriesWithBooks.map { CategoryWithBooksResponse(it.id!!, it.name!!, it.books!!) } // Adaptar a lista para Category
+        val categories = categoriesWithBooks.map { CategoryWithBooksResponse(it.id!!, it.name!!, it.books!!) }
         return ResponseEntity.ok(categories)
     }
-    @GetMapping("/{id}")
-    fun getById(@PathVariable id: Long) =
-            service.findCategoryByIdOrNull(id)?.let { ResponseEntity.ok(CategoryResponse(it)) }
-                    ?: ResponseEntity.notFound().build()
 
+    @GetMapping("/{id}")
+    fun getById(@PathVariable id: Long): ResponseEntity<CategoryWithBooksResponse> {
+        val category = service.findCategoryByIdOrNull(id)
+        return if (category != null) {
+            val bookResponses: MutableSet<BookResponse> = category.books.map { BookResponse(it) }.toMutableSet()
+            val categoryWithBooksResponse = CategoryWithBooksResponse(
+                    category.id!!,
+                    category.name,
+                    bookResponses
+            )
+            ResponseEntity.ok(categoryWithBooksResponse)
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
+
+    @SecurityRequirement(name="AuthServer")
+    @PreAuthorize("permitAll()")
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: Long): ResponseEntity<Void> =
             if (service.deleteCategory(id)) ResponseEntity.ok().build()

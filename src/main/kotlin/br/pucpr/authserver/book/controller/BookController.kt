@@ -17,14 +17,15 @@ import org.springframework.web.bind.annotation.*
 class BookController(
         private val service: BookService
     ) {
-    @SecurityRequirement(name="AuthServer")
-    @PreAuthorize("permitAll()")
+
     @PostMapping
     fun create(@Valid @RequestBody request: CreateBookRequest): ResponseEntity<BookResponse> {
         val book = service.createBook(request)
         return ResponseEntity.status(HttpStatus.CREATED).body(BookResponse(book))
     }
     // TODO: implementar o update
+    @SecurityRequirement(name="AuthServer")
+    @PreAuthorize("permitAll()")
     @PatchMapping("/{id}")
     fun update(
             @PathVariable id: Long,
@@ -41,19 +42,14 @@ class BookController(
     fun getByTitle(@PathVariable title: String? = null) =
             service.getBooksByTitle(title!!.uppercase()).map { BookResponse(it) }.let { ResponseEntity.ok(it) }
 
-    @GetMapping("/category/{category}")
-    fun getByCategory(@PathVariable category: String? = null): ResponseEntity<List<BookResponse>> {
-        val books = service.getBooksByCategory(category!!.lowercase())
-        val bookResponses = books.map { BookResponse(it) }
-        return ResponseEntity.ok(bookResponses)
-    }
-
     @GetMapping("/{id}")
     fun getById(@PathVariable id: Long) =
             service.findBookByIdOrNull(id)?.let { ResponseEntity.ok(BookResponse(it)) }
                     ?: ResponseEntity.notFound().build()
 
     // TODO: implementar o delete
+    @SecurityRequirement(name="AuthServer")
+    @PreAuthorize("permitAll()")
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: Long): ResponseEntity<Void> =
             if (service.deleteBook(id)) ResponseEntity.ok().build()
