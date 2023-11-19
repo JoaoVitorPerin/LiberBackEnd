@@ -2,9 +2,11 @@ package br.pucpr.authserver.category
 
 import BookResponse
 import br.pucpr.authserver.book.BookRepository
+import br.pucpr.authserver.book.BookService
 import br.pucpr.authserver.category.controller.responses.CategoryWithBooksResponse
 import br.pucpr.authserver.exception.BadRequestException
 import br.pucpr.authserver.exception.NotFoundException
+import br.pucpr.authserver.users.User
 import br.pucpr.authserver.users.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,9 +33,18 @@ class CategoryService(
         }
     }
 
-
     fun findCategoryByIdOrNull(id: Long): Category? =
             repository.findById(id).orElse(null)
+
+    private fun findByIdOrThrow(id: Long) =
+            findCategoryByIdOrNull(id) ?: throw NotFoundException(id)
+
+    fun update(id: Long, name: String): Category? {
+        val category = findByIdOrThrow(id)
+        if (category.name == name) return null
+        category.name = name
+        return repository.save(category)
+    }
 
     fun deleteCategory(id: Long): Boolean {
         val category = findCategoryByIdOrNull(id) ?: return false

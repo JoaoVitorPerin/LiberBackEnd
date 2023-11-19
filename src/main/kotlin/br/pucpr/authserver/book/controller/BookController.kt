@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.*
 class BookController(
         private val service: BookService
     ) {
-
+    @SecurityRequirement(name="AuthServer")
+    @PreAuthorize("permitAll()")
     @PostMapping
     fun create(@Valid @RequestBody request: CreateBookRequest): ResponseEntity<BookResponse> {
         val book = service.createBook(request)
@@ -47,7 +48,6 @@ class BookController(
             service.findBookByIdOrNull(id)?.let { ResponseEntity.ok(BookResponse(it)) }
                     ?: ResponseEntity.notFound().build()
 
-    // TODO: implementar o delete
     @SecurityRequirement(name="AuthServer")
     @PreAuthorize("permitAll()")
     @DeleteMapping("/{id}")

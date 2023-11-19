@@ -3,24 +3,48 @@ package br.pucpr.authserver.category.controller
 import BookResponse
 import br.pucpr.authserver.category.CategoryService
 import br.pucpr.authserver.category.controller.requests.CreateCategoryRequest
+import br.pucpr.authserver.category.controller.requests.PatchCategoryRequest
 import br.pucpr.authserver.category.controller.responses.CategoryResponse
 import br.pucpr.authserver.category.controller.responses.CategoryWithBooksResponse
+import br.pucpr.authserver.exception.ForbiddenException
+import br.pucpr.authserver.security.UserToken
+import br.pucpr.authserver.users.controller.requests.PatchUserRequest
+import br.pucpr.authserver.users.controller.responses.UserResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/categories")
 class CategoryController(private val service: CategoryService) {
 
+    @SecurityRequirement(name="AuthServer")
+    @PreAuthorize("permitAll()")
     @PostMapping
     fun create(@Valid @RequestBody request: CreateCategoryRequest): ResponseEntity<CategoryResponse> {
         val category = service.createCategory(request.toCategory())
         return ResponseEntity.status(HttpStatus.CREATED).body(CategoryResponse(category))
+    }
+
+    @SecurityRequirement(name="AuthServer")
+    @PreAuthorize("permitAll()")
+    @PatchMapping("/{id}")
+    fun update(
+            @PathVariable id: Long,
+            @Valid @RequestBody request: PatchCategoryRequest,
+            auth: Authentication
+    ): ResponseEntity<CategoryResponse> {
+        val token = auth.principal as? UserToken ?: throw ForbiddenException()
+        if (token.id != id && !token.isAdmin) throw ForbiddenException()
+
+        return service.update(id, request.name!!)
+                ?.let { ResponseEntity.ok(CategoryResponse(it)) }
+                ?: ResponseEntity.noContent().build()
     }
 
     @GetMapping
