@@ -8,6 +8,7 @@ import br.pucpr.authserver.category.controller.responses.CategoryResponse
 import br.pucpr.authserver.category.controller.responses.CategoryWithBooksResponse
 import br.pucpr.authserver.exception.ForbiddenException
 import br.pucpr.authserver.security.UserToken
+import br.pucpr.authserver.users.SortDir
 import br.pucpr.authserver.users.controller.requests.PatchUserRequest
 import br.pucpr.authserver.users.controller.responses.UserResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -48,11 +49,14 @@ class CategoryController(private val service: CategoryService) {
     }
 
     @GetMapping
-    fun list(): ResponseEntity<List<CategoryWithBooksResponse>> {
-        val categoriesWithBooks = service.getAllCategories()
-        val categories = categoriesWithBooks.map { CategoryWithBooksResponse(it.id!!, it.name!!, it.books!!) }
+    fun list(@RequestParam sortDir: String? = null): ResponseEntity<List<CategoryWithBooksResponse>> {
+        val categoriesWithBooks = service.getAllCategories(SortDir.findOrThrow(sortDir ?: "ASC"))
+        val categories = categoriesWithBooks.map {
+            CategoryWithBooksResponse(it.id!!, it.name!!, it.books!!)
+        }
         return ResponseEntity.ok(categories)
     }
+
 
     @GetMapping("/{id}")
     fun getById(@PathVariable id: Long): ResponseEntity<CategoryWithBooksResponse> {
@@ -73,9 +77,16 @@ class CategoryController(private val service: CategoryService) {
     @SecurityRequirement(name="AuthServer")
     @PreAuthorize("permitAll()")
     @DeleteMapping("/{id}")
-    fun delete(@PathVariable id: Long): ResponseEntity<Void> =
-            if (service.deleteCategory(id)) ResponseEntity.ok().build()
-            else ResponseEntity.notFound().build()
+    fun delete(@PathVariable id: Long, auth: Authentication): ResponseEntity<Void> {
+        val token = auth.principal as? UserToken ?: throw ForbiddenException()
+        if (token.id != id && !token.isAdmin) throw ForbiddenException()
+        if (service.deleteCategory(id)){
+            return ResponseEntity.ok().build()
+        } else{
+            return ResponseEntity.notFound().build()
+        }
+    }
+
 
     companion object {
         private val log = LoggerFactory.getLogger(CategoryController::class.java)

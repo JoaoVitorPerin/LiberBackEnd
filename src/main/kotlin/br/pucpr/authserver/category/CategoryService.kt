@@ -2,11 +2,11 @@ package br.pucpr.authserver.category
 
 import BookResponse
 import br.pucpr.authserver.book.BookRepository
-import br.pucpr.authserver.book.BookService
 import br.pucpr.authserver.category.controller.responses.CategoryWithBooksResponse
 import br.pucpr.authserver.exception.BadRequestException
 import br.pucpr.authserver.exception.NotFoundException
-import br.pucpr.authserver.users.User
+import br.pucpr.authserver.users.SortDir
+import org.springframework.data.domain.Sort
 import br.pucpr.authserver.users.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,16 +25,25 @@ class CategoryService(
                 .also { log.info("Category inserted: {}", it.id) }
     }
 
-    fun getAllCategories(): List<CategoryWithBooksResponse> {
-        val categories = repository.findAll()
+    fun getAllCategories(dir: SortDir = SortDir.ASC): List<CategoryWithBooksResponse> {
+        val categories = when (dir) {
+            SortDir.ASC -> repository.findAll(Sort.by("name").ascending())
+            SortDir.DESC -> repository.findAll(Sort.by("name").descending())
+        }
+
         return categories.map { category ->
             val books = bookRepository.findByCategory(category.name).map { BookResponse(it) }.toMutableSet()
             CategoryWithBooksResponse(category.id!!, category.name, books)
         }
     }
 
+
     fun findCategoryByIdOrNull(id: Long): Category? =
             repository.findById(id).orElse(null)
+
+    fun findCategoryByNameOrNull(name: String): Category? {
+        return repository.findByName(name)
+    }
 
     private fun findByIdOrThrow(id: Long) =
             findCategoryByIdOrNull(id) ?: throw NotFoundException(id)

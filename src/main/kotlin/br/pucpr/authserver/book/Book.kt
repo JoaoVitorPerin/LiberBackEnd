@@ -20,6 +20,6 @@ class Book(
                 joinColumns = [JoinColumn(name = "bookId")],
                 inverseJoinColumns = [JoinColumn(name = "categoryId")]
         )
-        val categories: MutableSet<Category> = mutableSetOf()
+        var categories: MutableSet<Category> = mutableSetOf()
 ) {
 }
