@@ -1,6 +1,7 @@
 package br.pucpr.authserver.category
 
 import br.pucpr.authserver.book.Book
+import br.pucpr.authserver.category.controller.requests.CategoryRequest
 import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -22,4 +23,7 @@ class Category(
         @JsonIgnore
         val books: MutableSet<Book> = mutableSetOf()
 ) {
+        fun toCategoryRequest() = CategoryRequest(
+                name = name
+        )
 }

@@ -14,7 +14,7 @@ data class CreateBookRequest(
         val author: String,
 
         @field:Valid
-        val categories: Set<CategoryRequest>
+        val categories: MutableSet<CategoryRequest>
 ) {
     fun toBook() = Book(
             title = title,

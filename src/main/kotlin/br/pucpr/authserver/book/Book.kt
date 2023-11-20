@@ -1,5 +1,6 @@
 package br.pucpr.authserver.book
 
+import br.pucpr.authserver.book.controller.requests.CreateBookRequest
 import br.pucpr.authserver.category.Category
 import jakarta.persistence.*
 
@@ -22,4 +23,9 @@ class Book(
         )
         var categories: MutableSet<Category> = mutableSetOf()
 ) {
+        fun toBookRequest() = CreateBookRequest(
+                title = title,
+                author = author,
+                categories = categories.map { it.toCategoryRequest() }.toMutableSet()
+        )
 }
